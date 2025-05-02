@@ -1,40 +1,37 @@
-
 from flask import Flask, request, jsonify
 import openai
 import os
-import requests
 
 app = Flask(__name__)
-openai.api_key = os.getenv("OPENAI_API_KEY")  # A chave virá da variável de ambiente no Render
+
+# Configura a chave da OpenAI a partir da variável de ambiente
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+@app.route("/", methods=["GET"])
+def home():
+    return "Bot WhatsApp GPT ativo!"
 
 @app.route("/webhook", methods=["POST"])
-def whatsapp_webhook():
+def webhook():
     data = request.get_json()
-    mensagem = data.get("mensagem", "")
-    numero = data.get("numero", "")
 
-    # Enviando a mensagem para o ChatGPT
-    resposta = openai.ChatCompletion.create(
-        model="gpt-4-turbo",
-        messages=[
-            {
-                "role": "system",
-                "content": "Você é um atendente virtual da empresa VelozNet, um provedor de internet. Sempre responda com simpatia, peça o CEP antes de listar planos, e siga as políticas da empresa."
-            },
-            {"role": "user", "content": mensagem}
-        ]
-    )
+    # Captura a mensagem recebida (ajuste conforme o formato da Opa Supíte, se necessário)
+    user_message = data.get("message") or "Olá!"
 
-    resposta_texto = resposta["choices"][0]["message"]["content"]
+    # Chamada à API da OpenAI
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Você é um assistente simpático e prestativo."},
+                {"role": "user", "content": user_message}
+            ]
+        )
+        bot_reply = response.choices[0].message["content"].strip()
+    except Exception as e:
+        bot_reply = f"Erro ao processar a mensagem: {str(e)}"
 
-    # Aqui você enviaria de volta a resposta para o número no WhatsApp
-    # Substitua pela sua própria URL da API do WhatsApp
-    requests.post("https://sua-api-de-whatsapp.com/enviar", json={
-        "numero": numero,
-        "mensagem": resposta_texto
-    })
-
-    return jsonify({"resposta": resposta_texto})
+    return jsonify({"reply": bot_reply})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=10000)
