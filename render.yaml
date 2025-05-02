@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: bot-whatsapp-gpt
+    env: python
+    buildCommand: ""
+    startCommand: "python app.py"
